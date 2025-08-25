@@ -5,13 +5,13 @@ class CadastroCliente:
         self.Cadastro_cliente = [] #armazana os cadastros
         
         
-    def adicionar_Cliente (self, nome, cnpj, email, celular, senha):  #essa função pega o cadastro do mercado e adicona em uma lista
+    def adicionarCliente (self, nome, cnpj, email, celular, senha):  #essa função pega o cadastro do mercado e adicona em uma lista
         novo = Cadastro(nome , cnpj, email, celular, senha)
         self.Cadastro_cliente.append(novo)
         return novo
 
     
-    def atualizar_Perfil(self, nome=None, cnpj=None, email=None, celular=None, senha=None, status=None):
+    def atualizarPerfil(self, nome=None, cnpj=None, email=None, celular=None, senha=None, status=None):
         try:
             if nome: self.nome = nome
             if cnpj: self.cnpj = cnpj
@@ -34,7 +34,15 @@ class CadastroCliente:
         self.status = "Inativo"
 
 
-    def listar_Cliente(self):
+    def listarCliente(self):
         return self.Cadastro_cliente
     
+    def deletar_cliente(self, cnpj):
+        try:
+            cliente_removido = self.Cadastro_cliente.pop(cnpj)
+            return {"mensagem": f"Cliente {cliente_removido.nome} deletado com sucesso."}
+        except IndexError:
+            return {"erro": "Cliente não encontrado"}
+
+
     
