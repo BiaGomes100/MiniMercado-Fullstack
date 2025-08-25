@@ -22,7 +22,7 @@ def buscar_cliente_por_cnpj(cnpj):
 @cadastro_bp.route("/criar", methods=["POST"])
 def criar_cliente():
     dados = request.get_json()
-    novo_cliente = controller.adicionar_Cliente(
+    novo_cliente = controller.adicionarCliente(
         dados["nome"], dados["cnpj"], dados["email"], dados["celular"], dados["senha"]
     )
     return jsonify(novo_cliente.to_dict()), 201
@@ -32,7 +32,7 @@ def criar_cliente():
 # Rota para listar clientes
 @cadastro_bp.route("/listar", methods=["GET"])
 def listar_clientes():
-    clientes = [cliente.to_dict() for cliente in controller.listar_Cliente()]
+    clientes = [cliente.to_dict() for cliente in controller.listarCliente()]
     return jsonify(clientes), 200
 
 
