@@ -1,48 +1,71 @@
-from Domain.cadastro import Cadastro
+from config.db import get_db_connection
+from Infrastructure.Model.cadastro_model import ClienteModel
 
 class CadastroCliente:
-    def __init__(self):
-        self.Cadastro_cliente = [] #armazana os cadastros
-        
-        
-    def adicionarCliente (self, nome, cnpj, email, celular, senha):  #essa função pega o cadastro do mercado e adicona em uma lista
-        novo = Cadastro(nome , cnpj, email, celular, senha)
-        self.Cadastro_cliente.append(novo)
-        return novo
-
     
-    def atualizarPerfil(self, nome=None, cnpj=None, email=None, celular=None, senha=None, status=None):
-        try:
-            if nome: self.nome = nome
-            if cnpj: self.cnpj = cnpj
-            if email: self.email = email
-            if celular: self.celular = celular
-            if senha: 
-                if len(senha) < 4:
-                    raise ValueError("Senha muito curta!")
-                self.__senha = senha       #senha mais protegida 
-            if status: self.status = status
-        except ValueError as senha:
-            print(f"Erro ao atualizar perfil: {senha}")
-    
-    
-    def cadastroAtivo(self):
-        self.status = "Ativo"
-
-
-    def cadastroInativo(self):
-        self.status = "Inativo"
-
+    def adicionarCliente(self, nome, cnpj, email, celular, senha):
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        sql = "INSERT INTO clientes (nome, cnpj, email, celular, senha) VALUES (%s, %s, %s, %s, %s)"
+        cursor.execute(sql, (nome, cnpj, email, celular, senha))
+        conn.commit()
+        cliente_id = cursor.lastrowid
+        cursor.close()
+        conn.close()
+        return ClienteModel(cliente_id, nome, cnpj, email, celular, senha, "Inativo", None).to_dict()
 
     def listarCliente(self):
-        return self.Cadastro_cliente
-    
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM clientes")
+        clientes = [ClienteModel(**row).to_dict() for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+        return clientes
+
+    def buscar_cliente_por_cnpj(self, cnpj):
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM clientes WHERE cnpj=%s", (cnpj,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return ClienteModel(**row).to_dict() if row else None
+
+    def atualizarPerfil(self, cnpj, nome=None, email=None, celular=None, senha=None, status=None):
+        cliente = self.buscar_cliente_por_cnpj(cnpj)
+        if not cliente:
+            return None
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        sql = "UPDATE clientes SET nome=%s, email=%s, celular=%s, senha=%s, status=%s WHERE cnpj=%s"
+        cursor.execute(sql, (
+            nome if nome else cliente['nome'],
+            email if email else cliente['email'],
+            celular if celular else cliente['celular'],
+            senha if senha else cliente['senha'],
+            status if status else cliente['status'],
+            cnpj
+        ))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return self.buscar_cliente_por_cnpj(cnpj)
+
     def deletar_cliente(self, cnpj):
-        try:
-            cliente_removido = self.Cadastro_cliente.pop(cnpj)
-            return {"mensagem": f"Cliente {cliente_removido.nome} deletado com sucesso."}
-        except IndexError:
-            return {"erro": "Cliente não encontrado"}
+        cliente = self.buscar_cliente_por_cnpj(cnpj)
+        if not cliente:
+            return None
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM clientes WHERE cnpj=%s", (cnpj,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return cliente
 
+    def ativar_cliente(self, cnpj):
+        return self.atualizarPerfil(cnpj, status="Ativo")
 
-    
+    def inativar_cliente(self, cnpj):
+        return self.atualizarPerfil(cnpj, status="Inativo")

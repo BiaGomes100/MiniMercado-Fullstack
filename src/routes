@@ -1,99 +1,67 @@
 from flask import Flask, request, jsonify, Blueprint
 from Application.Controllers.cadastro_controller import CadastroCliente
 
-
 app = Flask(__name__)
-
 cadastro_bp = Blueprint('cadastro_bp', __name__)
 controller = CadastroCliente()
 
-
-# Função auxiliar para buscar cliente pelo CNPJ
-def buscar_cliente_por_cnpj(cnpj):
-    for cliente in controller.Cadastro_cliente:
-        if cliente.cnpj == cnpj:
-            return cliente
-    return None
-
-
-
-
-# Rota para criar cliente
+# Criar cliente
 @cadastro_bp.route("/criar", methods=["POST"])
 def criar_cliente():
     dados = request.get_json()
     novo_cliente = controller.adicionarCliente(
         dados["nome"], dados["cnpj"], dados["email"], dados["celular"], dados["senha"]
     )
-    return jsonify(novo_cliente.to_dict()), 201
+    return jsonify(novo_cliente), 201
 
-
-
-# Rota para listar clientes
+# Listar clientes
 @cadastro_bp.route("/listar", methods=["GET"])
 def listar_clientes():
-    clientes = [cliente.to_dict() for cliente in controller.listarCliente()]
+    clientes = controller.listarCliente()
     return jsonify(clientes), 200
 
-
-
-# Rota para ativar cliente pelo CNPJ
+# Ativar cliente
 @cadastro_bp.route("/ativar/<string:cnpj>", methods=["PUT"])
 def ativar_cliente(cnpj):
-    cliente = buscar_cliente_por_cnpj(cnpj)
+    cliente = controller.ativar_cliente(cnpj)
     if cliente:
-        cliente.status = "Ativo"
-        return jsonify(cliente.to_dict()), 200
+        return jsonify(cliente), 200
     return jsonify({"erro": "Cliente não encontrado"}), 404
 
-
-
-# Rota para inativar cliente pelo CNPJ
+# Inativar cliente
 @cadastro_bp.route("/inativar/<string:cnpj>", methods=["PUT"])
 def inativar_cliente(cnpj):
-    cliente = buscar_cliente_por_cnpj(cnpj)
+    cliente = controller.inativar_cliente(cnpj)
     if cliente:
-        cliente.status = "Inativo"
-        return jsonify(cliente.to_dict()), 200
+        return jsonify(cliente), 200
     return jsonify({"erro": "Cliente não encontrado"}), 404
 
-
-
-# Rota para atualizar cliente pelo CNPJ
+# Atualizar cliente
 @cadastro_bp.route("/atualizar/<string:cnpj>", methods=["PUT"])
 def atualizar_cliente(cnpj):
-    cliente = buscar_cliente_por_cnpj(cnpj)
+    dados = request.get_json()
+    cliente = controller.atualizarPerfil(
+        cnpj,
+        nome=dados.get("nome"),
+        email=dados.get("email"),
+        celular=dados.get("celular"),
+        senha=dados.get("senha"),
+        status=dados.get("status")
+    )
     if cliente:
-        dados = request.get_json()
-        if "nome" in dados: cliente.nome = dados["nome"]
-        if "cnpj" in dados: cliente.cnpj = dados["cnpj"]
-        if "email" in dados: cliente.email = dados["email"]
-        if "celular" in dados: cliente.celular = dados["celular"]
-        if "senha" in dados:
-            if len(dados["senha"]) < 4:
-                return jsonify({"erro": "Senha muito curta!"}), 400
-            cliente.senha = dados["senha"]
-        if "status" in dados: cliente.status = dados["status"]
-        return jsonify(cliente.to_dict()), 200
+        return jsonify(cliente), 200
     return jsonify({"erro": "Cliente não encontrado"}), 404
 
-
-
-# Rota para deletar cliente pelo CNPJ
+# Deletar cliente
 @cadastro_bp.route("/deletar/<string:cnpj>", methods=["DELETE"])
 def deletar_cliente(cnpj):
-    cliente = buscar_cliente_por_cnpj(cnpj)
+    cliente = controller.deletar_cliente(cnpj)
     if cliente:
-        controller.Cadastro_cliente.remove(cliente)
-        return jsonify({"mensagem": f"Cliente {cliente.nome} deletado com sucesso."}), 200
+        return jsonify({"mensagem": f"Cliente {cliente['nome']} deletado com sucesso."}), 200
     return jsonify({"erro": "Cliente não encontrado"}), 404
 
-
-
-# Registrando o Blueprint no app
+# Registrar blueprint
 app.register_blueprint(cadastro_bp, url_prefix="/cadastro")
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
