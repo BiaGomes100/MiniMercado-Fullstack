@@ -9,21 +9,19 @@ controller = CadastroCliente()
 @cadastro_bp.route("/criar", methods=["POST"])
 def criar_cliente():
     dados = request.get_json()
-    novo_cliente = controller.adicionarCliente(
-        dados["nome"], dados["cnpj"], dados["email"], dados["celular"], dados["senha"]
-    )
+    novo_cliente = controller.criar(dados)
     return jsonify(novo_cliente), 201
 
 # Listar clientes
 @cadastro_bp.route("/listar", methods=["GET"])
 def listar_clientes():
-    clientes = controller.listarCliente()
+    clientes = controller.listar()
     return jsonify(clientes), 200
 
 # Ativar cliente
 @cadastro_bp.route("/ativar/<string:cnpj>", methods=["PUT"])
 def ativar_cliente(cnpj):
-    cliente = controller.ativar_cliente(cnpj)
+    cliente = controller.ativar(cnpj)
     if cliente:
         return jsonify(cliente), 200
     return jsonify({"erro": "Cliente não encontrado"}), 404
@@ -31,7 +29,7 @@ def ativar_cliente(cnpj):
 # Inativar cliente
 @cadastro_bp.route("/inativar/<string:cnpj>", methods=["PUT"])
 def inativar_cliente(cnpj):
-    cliente = controller.inativar_cliente(cnpj)
+    cliente = controller.inativar(cnpj)
     if cliente:
         return jsonify(cliente), 200
     return jsonify({"erro": "Cliente não encontrado"}), 404
@@ -40,14 +38,7 @@ def inativar_cliente(cnpj):
 @cadastro_bp.route("/atualizar/<string:cnpj>", methods=["PUT"])
 def atualizar_cliente(cnpj):
     dados = request.get_json()
-    cliente = controller.atualizarPerfil(
-        cnpj,
-        nome=dados.get("nome"),
-        email=dados.get("email"),
-        celular=dados.get("celular"),
-        senha=dados.get("senha"),
-        status=dados.get("status")
-    )
+    cliente = controller.atualizar(cnpj, dados)
     if cliente:
         return jsonify(cliente), 200
     return jsonify({"erro": "Cliente não encontrado"}), 404
@@ -55,12 +46,12 @@ def atualizar_cliente(cnpj):
 # Deletar cliente
 @cadastro_bp.route("/deletar/<string:cnpj>", methods=["DELETE"])
 def deletar_cliente(cnpj):
-    cliente = controller.deletar_cliente(cnpj)
+    cliente = controller.deletar(cnpj)
     if cliente:
         return jsonify({"mensagem": f"Cliente {cliente['nome']} deletado com sucesso."}), 200
     return jsonify({"erro": "Cliente não encontrado"}), 404
 
-# Registrar blueprint
+# Registrar Blueprint
 app.register_blueprint(cadastro_bp, url_prefix="/cadastro")
 
 if __name__ == "__main__":
