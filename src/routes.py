@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, jsonify, Blueprint
-from Application.Controllers.Cadastro_controller import CadastroCliente
+from Application.Controllers.cadastro_controller import CadastroCliente
  
 
 app = Flask(__name__)
