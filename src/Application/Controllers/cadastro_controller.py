@@ -1,5 +1,5 @@
 import os
-from Application.Service.Cadastro_service import CadastroService
+from Application.Service.cadastro_service import CadastroService
 
 class CadastroCliente:
     def __init__(self):

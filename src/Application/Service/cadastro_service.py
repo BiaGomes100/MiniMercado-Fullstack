@@ -1,13 +1,14 @@
 import os
 from Domain.cadastro import Cadastro
-from Infrastructure.Repositories.cadastro_repository import CadastroRepository_class
+from Infrastructure.Repositories.cadastro_repository import CadastroRepository
+
 from Infrastructure.http.jwt_service import JWTService
-from Infrastructure.http.twilo_service import TwilioService
+from Infrastructure.http.twilio_service import TwilioService
 
 class CadastroService:
-    def __init__(self):
-        self.repository = CadastroRepository_class()
-        self.jwt_service = JWTService()
+    def __init__(self):            #aqui ele puxa as clases que vao ser usadas
+        self.repository = CadastroRepository()
+        self.jwt_service = JWTService()                 
         self.twilio_service = TwilioService()
 
     def adicionar_cliente(self, nome, cnpj, email, celular, senha):
@@ -16,7 +17,7 @@ class CadastroService:
         cliente = Cadastro(nome, cnpj, email, celular, senha, "Inativo")
         
         # Salva no banco
-        cliente_id = self.repository.adicionar_cliente(cliente)
+        cliente_id = self.repository.adicionar_cliente(cliente)    #salva o cliente no banco e retorna o id
         
         # Gera token JWT para verificação
         token = self.jwt_service.gerar_token(cnpj)
@@ -40,13 +41,14 @@ class CadastroService:
 
     def listar_clientes(self):
         """Lista todos os clientes"""
-        rows = self.repository.listar_clientes()
-        return [cliente.to_dict() for cliente in rows]
+        return self.repository.listar_clientes()
+  
 
     def buscar_por_cnpj(self, cnpj):
-        """Busca cliente específico"""
-        cliente = self.repository.buscar_por_cnpj(cnpj)
-        return cliente.to_dict() if cliente else None
+       """Busca cliente específico"""
+       cliente = self.repository.buscar_por_cnpj(cnpj)
+       return cliente  # já é dict, não precisa do to_dict()
+
 
     def atualizar_cliente(self, cnpj, dados):
         """Atualiza dados do cliente"""
