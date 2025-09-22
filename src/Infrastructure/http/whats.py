@@ -1,2 +1,0 @@
-#aqui ficará o twilio
-

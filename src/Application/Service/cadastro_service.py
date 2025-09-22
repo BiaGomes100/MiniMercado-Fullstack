@@ -1,80 +1,69 @@
-from config.db import get_db_connection
-from Infrastructure.Model.cadastro_model import ClienteModel
+import os
+from Domain.cadastro import Cadastro
+from Infrastructure.Repositories.cadastro_repository import CadastroRepository_class
+from Infrastructure.http.jwt_service import JWTService
+from Infrastructure.http.twilo_service import TwilioService
 
 class CadastroService:
+    def __init__(self):
+        self.repository = CadastroRepository_class()
+        self.jwt_service = JWTService()
+        self.twilio_service = TwilioService()
 
     def adicionar_cliente(self, nome, cnpj, email, celular, senha):
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        """Cria novo cliente e envia código de verificação"""
+        # Cria objeto de domínio
+        cliente = Cadastro(nome, cnpj, email, celular, senha, "Inativo")
+        
+        # Salva no banco
+        cliente_id = self.repository.adicionar_cliente(cliente)
+        
+        # Gera token JWT para verificação
+        token = self.jwt_service.gerar_token(cnpj)
+        
+        # Envia código via WhatsApp
+        mensagem = f"Seu código de verificação: {token}"
+        self.twilio_service.enviar_mensagem(celular, mensagem)
+        
+        return {
+            "id": cliente_id,
+            "mensagem": "Cliente criado. Verifique seu WhatsApp para ativar.",
+            "token_verificacao": token
+        }
 
-        sql = """INSERT INTO clientes (nome, cnpj, email, celular, senha)
-                 VALUES (%s, %s, %s, %s, %s)"""
-        cursor.execute(sql, (nome, cnpj, email, celular, senha))
-        conn.commit()
-        cliente_id = cursor.lastrowid
-
-        cursor.close()
-        conn.close()
-
-        return ClienteModel(cliente_id, nome, cnpj, email, celular, senha, "Inativo", None).to_dict()
+    def verificar_cliente(self, cnpj, token):
+        """Verifica token e ativa cliente"""
+        if self.jwt_service.validar_token(token):
+            self.repository.atualizar_cliente(cnpj, {"status": "Ativo"})
+            return {"mensagem": "Cliente ativado com sucesso"}
+        return {"erro": "Token inválido ou expirado"}
 
     def listar_clientes(self):
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM clientes")
-        clientes = [ClienteModel(**row).to_dict() for row in cursor.fetchall()]
-        cursor.close()
-        conn.close()
-        return clientes
+        """Lista todos os clientes"""
+        rows = self.repository.listar_clientes()
+        return [cliente.to_dict() for cliente in rows]
 
     def buscar_por_cnpj(self, cnpj):
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM clientes WHERE cnpj=%s", (cnpj,))
-        row = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        return ClienteModel(**row).to_dict() if row else None
+        """Busca cliente específico"""
+        cliente = self.repository.buscar_por_cnpj(cnpj)
+        return cliente.to_dict() if cliente else None
 
-    def atualizar_cliente(self, cnpj, nome=None, email=None, celular=None, senha=None, status=None):
-        cliente = self.buscar_por_cnpj(cnpj)
-        if not cliente:
-            return None
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        sql = """UPDATE clientes SET nome=%s, email=%s, celular=%s, senha=%s, status=%s 
-                 WHERE cnpj=%s"""
-        cursor.execute(sql, (
-            nome if nome else cliente['nome'],
-            email if email else cliente['email'],
-            celular if celular else cliente['celular'],
-            senha if senha else cliente['senha'],
-            status if status else cliente['status'],
-            cnpj
-        ))
-        conn.commit()
-        cursor.close()
-        conn.close()
-
+    def atualizar_cliente(self, cnpj, dados):
+        """Atualiza dados do cliente"""
+        self.repository.atualizar_cliente(cnpj, dados)
         return self.buscar_por_cnpj(cnpj)
 
     def deletar_cliente(self, cnpj):
+        """Remove cliente"""
         cliente = self.buscar_por_cnpj(cnpj)
-        if not cliente:
-            return None
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM clientes WHERE cnpj=%s", (cnpj,))
-        conn.commit()
-        cursor.close()
-        conn.close()
+        if cliente:
+            self.repository.deletar_cliente(cnpj)
         return cliente
 
     def ativar_cliente(self, cnpj):
-        return self.atualizar_cliente(cnpj, status="Ativo")
+        """Ativa cliente manualmente"""
+        return self.atualizar_cliente(cnpj, {"status": "Ativo"})
 
     def inativar_cliente(self, cnpj):
-        return self.atualizar_cliente(cnpj, status="Inativo")
+        """Inativa cliente"""
+        return self.atualizar_cliente(cnpj, {"status": "Inativo"})
