@@ -7,9 +7,9 @@ load_dotenv()
 
 class TwilioService:
     def __init__(self):
-        self.account_sid = "AC3f7ab2232a16a90becaf86f3c9786a7a"
-        self.auth_token = "8deed8ded9ded6849585e02fd4d95804"
-        self.from_number = '+13262363042'
+        self.account_sid = os.getenv("AC3f7ab2232a16a90becaf86f3c9786a7a")
+        self.auth_token = os.getenv("8deed8ded9ded6849585e02fd4d95804")
+        self.from_number = os.getenv('+13262363042')
         self.client = Client(self.account_sid, self.auth_token)
 
     def enviar_mensagem(self, to_number, mensagem):
