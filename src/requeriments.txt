@@ -1,1 +1,8 @@
 Flask==3.1.2
+Flask
+mysql-connector-python
+python-dotenv
+pyjwt
+twilio
+flask-restful
+requests
