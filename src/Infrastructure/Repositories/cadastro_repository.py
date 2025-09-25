@@ -40,8 +40,8 @@ class CadastroRepository:
         conn = get_db_connection()
         with conn.cursor(buffered=True) as cursor:
             cursor.execute(
-                "UPDATE clientes SET nome=%s, status=%s WHERE cnpj=%s",
-                (dados.get("nome"), dados.get("status", "Inativo"), cnpj)
+                "UPDATE clientes SET  status=%s WHERE cnpj=%s",
+                ( dados.get("status", "Inativo"), cnpj)
             )
             conn.commit()
         conn.close()

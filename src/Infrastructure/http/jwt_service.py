@@ -7,13 +7,13 @@ load_dotenv()
 
 class JWTService:
     def __init__(self):
-        self.secret_key = os.getenv("JWT_SECRET_KEY", "chave_secreta_padrao")
+        self.secret_key = os.getenv("JWT_SECRET_KEY")
 
     def gerar_token(self, cnpj):
         """Gera token JWT para verificação de 2 fatores"""
         payload = {
             "cnpj": cnpj,
-            "exp": datetime.datetime.today() + datetime.timedelta(minutes=10)
+            "exp": (datetime.datetime.utcnow() + datetime.timedelta(minutes=50)).timestamp()
         }
         return jwt.encode(payload, self.secret_key, algorithm="HS256")
 
