@@ -1,6 +1,11 @@
 import os
 from flask import Flask, request, jsonify, Blueprint
 from Application.Controllers.cadastro_controller import CadastroCliente
+from config.db import Base, engine
+from infrastructure.model import ClienteModel
+
+Base.metadata.create_all(engine)
+
  
 
 app = Flask(__name__)
@@ -8,7 +13,6 @@ cadastro_bp = Blueprint('cadastro_bp', __name__)
 controller = CadastroCliente()
 
 
-# Criar cliente com verificação de 2 fatores
 @cadastro_bp.route("/criar", methods=["POST"])
 def criar_cliente():
     dados = request.get_json()
@@ -16,7 +20,6 @@ def criar_cliente():
     return jsonify(resultado), 201
 
 
-# Verificar token e ativar cliente
 @cadastro_bp.route("/verificar/<string:cnpj>", methods=["POST"])
 def verificar_cliente(cnpj):
     dados = request.get_json()
@@ -25,14 +28,12 @@ def verificar_cliente(cnpj):
     return jsonify(resultado), 200
 
 
-# Listar clientes
 @cadastro_bp.route("/listar", methods=["GET"])
 def listar_clientes():
     clientes = controller.listar()
     return jsonify(clientes), 200
 
 
-# Ativar cliente (admin)
 @cadastro_bp.route("/ativar/<string:cnpj>", methods=["PUT"])
 def ativar_cliente(cnpj):
     cliente = controller.ativar(cnpj)
@@ -41,7 +42,6 @@ def ativar_cliente(cnpj):
     return jsonify({"erro": "Cliente não encontrado"}), 404
 
 
-# Inativar cliente (admin)
 @cadastro_bp.route("/inativar/<string:cnpj>", methods=["PUT"])
 def inativar_cliente(cnpj):
     cliente = controller.inativar(cnpj)
@@ -50,7 +50,6 @@ def inativar_cliente(cnpj):
     return jsonify({"erro": "Cliente não encontrado"}), 404
 
 
-# Atualizar cliente
 @cadastro_bp.route("/atualizar/<string:cnpj>", methods=["PUT"])
 def atualizar_cliente(cnpj):
     dados = request.get_json()
@@ -60,7 +59,6 @@ def atualizar_cliente(cnpj):
     return jsonify({"erro": "Cliente não encontrado"}), 404
 
 
-# Deletar cliente
 @cadastro_bp.route("/deletar/<string:cnpj>", methods=["DELETE"])
 def deletar_cliente(cnpj):
     cliente = controller.deletar(cnpj)

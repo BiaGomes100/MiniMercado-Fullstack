@@ -1,55 +1,41 @@
-import mysql.connector
-from config.db import get_db_connection
+# Infrastructure/repositories/cadastro_repository.py
+from config.db import SessionLocal
+from infrastructure.model import ClienteModel
 
 class CadastroRepository:
-
-    def buscar_por_cnpj(self, cnpj):
-        """Busca um cliente pelo CNPJ"""
-        conn = get_db_connection()
-        with conn.cursor(dictionary=True, buffered=True) as cursor:
-            cursor.execute("SELECT * FROM clientes WHERE cnpj=%s", (cnpj,))
-            row = cursor.fetchone()
-        conn.close()
-        return row
-
-    def listar_clientes(self):
-        """Lista todos os clientes"""
-        conn = get_db_connection()
-        with conn.cursor(dictionary=True, buffered=True) as cursor:
-            cursor.execute("SELECT * FROM clientes")
-            rows = cursor.fetchall()
-        conn.close()
-        return rows
+    def __init__(self):
+        self.session = SessionLocal()
 
     def adicionar_cliente(self, cliente):
-        """Adiciona um cliente e retorna o id inserido"""
-        conn = get_db_connection()
-        with conn.cursor(buffered=True) as cursor:
-            cursor.execute(
-                "INSERT INTO clientes (cnpj, nome, email, celular, senha, status) "
-                "VALUES (%s, %s, %s, %s, %s, %s)",
-                (cliente.cnpj, cliente.nome, cliente.email, cliente.celular, cliente.senha, cliente.status)
-            )
-            conn.commit()
-            cliente_id = cursor.lastrowid  # pega o id do cliente inserido
-        conn.close()
-        return cliente_id
+        novo = ClienteModel(
+            nome=cliente.nome,
+            cnpj=cliente.cnpj,
+            email=cliente.email,
+            celular=cliente.celular,
+            senha=cliente.senha,
+            status=cliente.status
+        )
+        self.session.add(novo)
+        self.session.commit()
+        return novo.id
+
+    def listar_clientes(self):
+        clientes = self.session.query(ClienteModel).all()
+        return [c.to_dict() for c in clientes]
+
+    def buscar_por_cnpj(self, cnpj):
+        cliente = self.session.query(ClienteModel).filter_by(cnpj=cnpj).first()
+        return cliente.to_dict() if cliente else None
 
     def atualizar_cliente(self, cnpj, dados):
-        """Atualiza dados do cliente pelo CNPJ"""
-        conn = get_db_connection()
-        with conn.cursor(buffered=True) as cursor:
-            cursor.execute(
-                "UPDATE clientes SET  status=%s WHERE cnpj=%s",
-                ( dados.get("status", "Inativo"), cnpj)
-            )
-            conn.commit()
-        conn.close()
+        cliente = self.session.query(ClienteModel).filter_by(cnpj=cnpj).first()
+        if cliente:
+            for chave, valor in dados.items():
+                setattr(cliente, chave, valor)
+            self.session.commit()
 
     def deletar_cliente(self, cnpj):
-        """Deleta um cliente pelo CNPJ"""
-        conn = get_db_connection()
-        with conn.cursor(buffered=True) as cursor:
-            cursor.execute("DELETE FROM clientes WHERE cnpj=%s", (cnpj,))
-            conn.commit()
-        conn.close()
+        cliente = self.session.query(ClienteModel).filter_by(cnpj=cnpj).first()
+        if cliente:
+            self.session.delete(cliente)
+            self.session.commit()

@@ -10,7 +10,6 @@ class JWTService:
         self.secret_key = os.getenv("JWT_SECRET_KEY")
 
     def gerar_token(self, cnpj):
-        """Gera token JWT para verificação de 2 fatores"""
         payload = {
             "cnpj": cnpj,
             "exp": (datetime.datetime.utcnow() + datetime.timedelta(minutes=50)).timestamp()
@@ -18,7 +17,6 @@ class JWTService:
         return jwt.encode(payload, self.secret_key, algorithm="HS256")
 
     def validar_token(self, token):
-        """Valida token JWT"""
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
             return payload["cnpj"]
