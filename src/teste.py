@@ -1,4 +1,4 @@
-from infrastructure.model import ClienteModel
+from Infrastructure.Model.cadastro_model import ClienteModel
 from config.db import SessionLocal, Base, engine
 
 # cria tabelas

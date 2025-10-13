@@ -1,13 +1,13 @@
 # Infrastructure/repositories/cadastro_repository.py
 from config.db import SessionLocal
-from infrastructure.model import ClienteModel
+from Infrastructure.Model.cadastro_model import ClienteModel
 
 class CadastroRepository:
     def __init__(self):
         self.session = SessionLocal()
 
     def adicionar_cliente(self, cliente):
-        novo = ClienteModel(
+        novo =  ClienteModel(
             nome=cliente.nome,
             cnpj=cliente.cnpj,
             email=cliente.email,
@@ -20,11 +20,11 @@ class CadastroRepository:
         return novo.id
 
     def listar_clientes(self):
-        clientes = self.session.query(ClienteModel).all()
+        clientes = self.session.query( ClienteModel).all()
         return [c.to_dict() for c in clientes]
 
     def buscar_por_cnpj(self, cnpj):
-        cliente = self.session.query(ClienteModel).filter_by(cnpj=cnpj).first()
+        cliente = self.session.query( ClienteModel).filter_by(cnpj=cnpj).first()
         return cliente.to_dict() if cliente else None
 
     def atualizar_cliente(self, cnpj, dados):

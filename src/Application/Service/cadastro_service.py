@@ -1,9 +1,9 @@
 import os
 from Domain.cadastro import Cadastro
-from infrastructure.Repositories.cadastro_repository import CadastroRepository
+from Infrastructure.Repositories.cadastro_repository import CadastroRepository
 
-from infrastructure.http.jwt_service import JWTService
-from infrastructure.http.twilio_service import TwilioService
+from Infrastructure.http.jwt_service import JWTService
+from Infrastructure.http.twilio_service import TwilioService
 
 class CadastroService:
     def __init__(self):           

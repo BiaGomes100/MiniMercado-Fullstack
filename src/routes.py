@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, jsonify, Blueprint
 from Application.Controllers.cadastro_controller import CadastroCliente
 from config.db import Base, engine
-from infrastructure.model import ClienteModel
+from Infrastructure.Model.cadastro_model import ClienteModel
 
 Base.metadata.create_all(engine)
 
