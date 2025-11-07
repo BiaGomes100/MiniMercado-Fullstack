@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
-from sqlalchemy.orm import relationship
-from config import Base  
+from config.db import Base  
 
 
 class Produto(Base):
@@ -12,10 +11,6 @@ class Produto(Base):
     quantidade = Column(Integer, nullable=False)
     status = Column(Boolean, default=True) 
     imagem = Column(String(255))
-    seller_id = Column(Integer, ForeignKey("sellers.id"), nullable=False)
-
-    
-    seller = relationship("Seller", back_populates="produtos")
 
     def __init__(self, nome, preco, quantidade, seller_id, imagem=None, status=True):
         self.nome = nome
@@ -23,7 +18,6 @@ class Produto(Base):
         self.quantidade = quantidade
         self.status = status
         self.imagem = imagem
-        self.seller_id = seller_id
 
     def to_dict(self): #retorna as informacoes em json 
         return {
@@ -33,5 +27,4 @@ class Produto(Base):
             "quantidade": self.quantidade,
             "status": "Ativo" if self.status else "Inativo",
             "imagem": self.imagem,
-            "seller_id": self.seller_id
         }

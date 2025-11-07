@@ -1,11 +1,6 @@
 from Infrastructure.Model.produto_model import Produto
-#falta colocar o baco de dados aqui que a thay vai me ajudar 
-#falta validar tbnm o seller(codigo aq em baixo)
 
-"""if produto.seller_id != seller_id_autenticado:
-    raise PermissionError("Você só pode gerenciar seus próprios produtos")"""
-
-class ProdutoRepository:
+class ProdutoServiece:
     def __init__(self):
         self._produtos = []
         self._proximo_id = 1

@@ -14,3 +14,4 @@ class Produto:
             "imagem": self.imagem,
             "status": self.status
         }
+    
