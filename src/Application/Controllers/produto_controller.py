@@ -1,4 +1,4 @@
-'''import os
+import os
 from Application.Service.produto_service import ProdutoService
 
 class CadastroProduto:
@@ -14,22 +14,15 @@ class CadastroProduto:
             dados["status"]
         )
 
-    def verificar(self, cnpj, token):
-        return self.service.verificar_cliente(cnpj, token)
-
     def listar(self):
-        return self.service.listar_clientes()
+        return self.service.listar_produtos()
 
-    def ativar(self, cnpj):
-        return self.service.ativar_cliente(cnpj)
+    def atualizar(self, id_produto, dados):
+        return self.service.atualizar_produto(id_produto, dados)
 
-    def inativar(self, cnpj):
-        return self.service.inativar_cliente(cnpj)
+    def deletar(self, id_produto):
+        return self.service.deletar_produto(id_produto)
 
-    def atualizar(self, cnpj, dados):
-        return self.service.atualizar_cliente(cnpj, dados)
-
-    def deletar(self, cnpj):
-        return self.service.deletar_cliente(cnpj)
-
-        ''' 
+    def buscar(self, id_produto):
+        return self.service.buscar_por_id(id_produto)   
+    

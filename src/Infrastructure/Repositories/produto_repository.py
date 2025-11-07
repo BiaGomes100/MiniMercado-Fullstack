@@ -1,4 +1,3 @@
-# Infrastructure/repositories/cadastro_repository.py
 from config.db import SessionLocal
 from Infrastructure.Model.produto_model import ProdutoModel
 
@@ -6,7 +5,7 @@ class PordutoRepository:
     def __init__(self):
         self.session = SessionLocal()
 
-    def adicionar_cliente(self, produto):
+    def adicionar_produto(self, produto):
         novo = ProdutoModel(
             nome=produto.nome,
             preco=produto.preco,
@@ -18,14 +17,13 @@ class PordutoRepository:
         self.session.commit()
         return novo.id
 
-    def listar_Produto(self):
-        produtos = self.session.query( ProdutoModel).all()
+    def listar_produtos(self):
+        produtos = self.session.query(ProdutoModel).all()
         return [c.to_dict() for c in produtos]
 
-    '''def buscar_por_nome(self, nome):
-        produto = self.session.query( ProdutoModel).filter_by(nome=nome).first()
+    def buscar_por_nome(self, nome):
+        produto = self.session.query(ProdutoModel).filter_by(nome=nome).first()
         return produto.to_dict() if produto else None
-    '''
 
     def editar_produto(self, nome, dados):
         produto = self.session.query(ProdutoModel).filter_by(nome=nome).first()
@@ -40,4 +38,6 @@ class PordutoRepository:
             self.session.delete(produto)
             self.session.commit()
 
-# falta ver detalher dos produtos
+    def detalhar_produto(self, nome):
+        produto = self.session.query(ProdutoModel).filter_by(nome=nome).first()
+        return produto.to_dict() if produto else None
