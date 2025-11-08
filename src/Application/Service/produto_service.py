@@ -1,69 +1,106 @@
-import os
 from Domain.produto import Produto
-from Infrastructure.Repositories.produto_repository import PordutoRepository
+from Infrastructure.Repositories.produto_repository import ProdutoRepository
 from Infrastructure.http.jwt_service import JWTService
-from Infrastructure.http.twilio_service import TwilioService
-
 
 class ProdutoService:
     def __init__(self):
-        self.repository = PordutoRepository()
+        self.repository = ProdutoRepository()
         self.jwt_service = JWTService()
-        self.twilio_service = TwilioService()
 
-    def adicionar_produto(self, token_seller, nome, preco, quantidade, imagem):
-        if not self.jwt_service.validar_token(token_seller):
+    # Cadastrar produto
+    def adicionar_produto(self, token, nome, preco, quantidade, imagem):
+        seller = self.jwt_service.validar_token(token)
+        if not seller:
             return {"erro": "Token inválido ou expirado"}
 
+        if not seller["ativo"]:
+            return {"erro": "Seller inativo. Ative sua conta antes de cadastrar produtos."}
+
         produto = Produto(
+            id_seller=seller["id"],
             nome=nome,
             preco=preco,
             quantidade=quantidade,
-            status="Ativo",
             imagem=imagem
         )
-
         produto_id = self.repository.adicionar_produto(produto)
+        return {"mensagem": "Produto cadastrado com sucesso!", "id": produto_id}
 
-        mensagem = f"Produto '{produto.nome}' cadastrado com sucesso! Preço: R$ {produto.preco}"
-        self.twilio_service.enviar_mensagem(os.getenv("TWILIO_CELULAR_SELLER"), mensagem)
-
-        return {
-            "id": produto_id,
-            "mensagem": "Produto cadastrado com sucesso e notificação enviada."
-        }
-
-    def listar_produtos(self, token_seller, incluir_inativos=False):
-        if not self.jwt_service.validar_token(token_seller):
+    # Listar produtos do seller
+    def listar_produtos(self, token):
+        seller = self.jwt_service.validar_token(token)
+        if not seller:
             return {"erro": "Token inválido ou expirado"}
 
-        produtos = self.repository.listar_Produto()
-
-        if not incluir_inativos:
-            produtos = [p for p in produtos if p["status"] == "Ativo"]
-
+        produtos = self.repository.listar_por_seller(seller["id"])
         return produtos
 
-    def buscar_por_nome(self, token_seller, nome):
-        if not self.jwt_service.validar_token(token_seller):
-            return {"erro": "Token inválido ou expirado"}
+    # Editar produto
+    def atualizar_produto(self, token, id_produto, dados):
+        seller = self.jwt_service.validar_token(token)
+        if not seller:
+            return {"erro": "Token inválido"}
 
-        produto = self.repository.session.query(self.repository.session.query_property().class_).filter_by(nome=nome).first()
-        if not produto:
+        produto = self.repository.buscar_por_id(id_produto)
+        if not produto or produto.id_seller != seller["id"]:
+            return {"erro": "Produto não encontrado ou não pertence ao seller"}
+
+        atualizado = self.repository.atualizar_produto(id_produto, dados)
+        return {"mensagem": "Produto atualizado com sucesso!", "produto": atualizado.to_dict()}
+
+    # Inativar produto
+    def inativar_produto(self, token, id_produto):
+        seller = self.jwt_service.validar_token(token)
+        if not seller:
+            return {"erro": "Token inválido"}
+
+        produto = self.repository.buscar_por_id(id_produto)
+        if not produto or produto.id_seller != seller["id"]:
+            return {"erro": "Produto não encontrado"}
+
+        inativo = self.repository.inativar_produto(id_produto)
+        return {"mensagem": f"Produto '{inativo.nome}' inativado com sucesso."}
+
+    # Ver detalhes de produto
+    def detalhar_produto(self, token, id_produto):
+        seller = self.jwt_service.validar_token(token)
+        if not seller:
+            return {"erro": "Token inválido"}
+
+        produto = self.repository.buscar_por_id(id_produto)
+        if not produto or produto.id_seller != seller["id"]:
             return {"erro": "Produto não encontrado"}
 
         return produto.to_dict()
 
-    def editar_produto(self, token_seller, nome, dados):
-        if not self.jwt_service.validar_token(token_seller):
+    # Realizar venda (regras dentro do mesmo módulo)
+    def vender_produto(self, token, id_produto, quantidade_vendida):
+        seller = self.jwt_service.validar_token(token)
+        if not seller:
             return {"erro": "Token inválido ou expirado"}
 
-        self.repository.editar_produto(nome, dados)
-        return {"mensagem": f"Produto '{nome}' atualizado com sucesso."}
+        if not seller["ativo"]:
+            return {"erro": "Sellers inativos não podem realizar vendas."}
 
-    def inativar_produto(self, token_seller, nome):
-        if not self.jwt_service.validar_token(token_seller):
-            return {"erro": "Token inválido ou expirado"}
+        produto = self.repository.buscar_por_id(id_produto)
+        if not produto or produto.id_seller != seller["id"]:
+            return {"erro": "Produto não encontrado ou não pertence ao seller"}
 
-        self.repository.inativar_produto(nome)
-        return {"mensagem": f"O produto '{nome}' foi inativado com sucesso."}
+        if produto.status == "Inativo":
+            return {"erro": "Produtos inativados não podem ser vendidos."}
+
+        if produto.quantidade < quantidade_vendida:
+            return {"erro": "Quantidade em estoque insuficiente."}
+
+        # Atualiza o estoque
+        produto.quantidade -= quantidade_vendida
+        self.repository.atualizar_produto(id_produto, {"quantidade": produto.quantidade})
+
+        valor_total = quantidade_vendida * produto.preco
+
+        return {
+            "mensagem": "Venda realizada com sucesso!",
+            "produto": produto.nome,
+            "quantidade_vendida": quantidade_vendida,
+            "valor_total": valor_total
+        }

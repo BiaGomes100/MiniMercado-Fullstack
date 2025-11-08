@@ -1,28 +1,24 @@
-import os
 from Application.Service.produto_service import ProdutoService
 
-class CadastroProduto:
+class ProdutoController:
     def __init__(self):
         self.service = ProdutoService()
 
-    def criar(self, dados):
-        return self.service.adicionar_produto(
-            dados["nome"],
-            dados["preco"],
-            dados["quantidade"],
-            dados["imagem"],
-            dados["status"]
-        )
+    def criar(self, token, dados):
+        return self.service.adicionar_produto(token, **dados)
 
-    def listar(self):
-        return self.service.listar_produtos()
+    def listar(self, token):
+        return self.service.listar_produtos(token)
 
-    def atualizar(self, id_produto, dados):
-        return self.service.atualizar_produto(id_produto, dados)
+    def atualizar(self, token, id_produto, dados):
+        return self.service.atualizar_produto(token, id_produto, dados)
 
-    def deletar(self, id_produto):
-        return self.service.deletar_produto(id_produto)
+    def inativar(self, token, id_produto):
+        return self.service.inativar_produto(token, id_produto)
 
-    def buscar(self, id_produto):
-        return self.service.buscar_por_id(id_produto)   
-    
+    def detalhar(self, token, id_produto):
+        return self.service.detalhar_produto(token, id_produto)
+
+    def vender(self, token, id_produto, dados):
+        quantidade = dados.get("quantidade_vendida")
+        return self.service.vender_produto(token, id_produto, quantidade)

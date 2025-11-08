@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify, Blueprint
 from Application.Controllers.cadastro_controller import CadastroCliente
 from config.db import Base, engine
 from Infrastructure.Model.cadastro_model import ClienteModel
+from Application.Controllers.produto_controller import ProdutoController
 
 Base.metadata.create_all(engine)
 
@@ -69,45 +70,41 @@ def deletar_cliente(cnpj):
 
 #parte dos produtos
 
-@Produto_bp.route("/adicionar", methods=["POST"])
+
+produto_controller = ProdutoController()
+
+@app.route("/produto/adicionar", methods=["POST"])
 def adicionar_produto():
+    token = request.headers.get("Authorization")
     dados = request.get_json()
-    resultado = controller.adicionar(dados)
-    return jsonify(resultado), 201
+    return jsonify(produto_controller.criar(token, dados)), 201
 
-@Produto_bp.route("/listar", methods=["GET"])
+@app.route("/produto/listar", methods=["GET"])
 def listar_produtos():
-    produtos = controller.listar()
-    return jsonify(produtos), 200
+    token = request.headers.get("Authorization")
+    return jsonify(produto_controller.listar(token)), 200
 
-@Produto_bp.route("/inativar/<string:nome>", methods=["PUT"])
-def inativar_produto(nome):
-    produto = controller.inativar(nome)
-    if produto:
-        return jsonify(produto), 200
-    return jsonify({"erro": "Produto não encontrado"}), 404
+@app.route("/produto/<int:id>/detalhar", methods=["GET"])
+def detalhar_produto(id):
+    token = request.headers.get("Authorization")
+    return jsonify(produto_controller.detalhar(token, id)), 200
 
-@Produto_bp.route("/editar/<string:nome>", methods=["PUT"])
-def editar_produto(nome):
+@app.route("/produto/<int:id>/atualizar", methods=["PUT"])
+def atualizar_produto(id):
+    token = request.headers.get("Authorization")
     dados = request.get_json()
-    produto = controller.editar(nome, dados)
-    if produto:
-        return jsonify(produto), 200
-    return jsonify({"erro": "Produto não encontrado"}), 404
+    return jsonify(produto_controller.atualizar(token, id, dados)), 200
 
-@Produto_bp.route("/buscar_por_nome/<string:nome>", methods=["GET"])
-def buscar_produto(nome):
-    produto = controller.buscar_por_nome(nome)
-    if produto:
-        return jsonify(produto), 200
-    return jsonify({"erro": "Produto não encontrado"}), 404
+@app.route("/produto/<int:id>/inativar", methods=["PUT"])
+def inativar_produto(id):
+    token = request.headers.get("Authorization")
+    return jsonify(produto_controller.inativar(token, id)), 200
 
-@Produto_bp.route("/detalhar/<string:nome>", methods=["GET"])
-def detalhar_produto(nome):
-    produto = controller.detalhar(nome)
-    if produto:
-        return jsonify(produto), 200
-    return jsonify({"erro": "Produto não encontrado"}), 404
+@app.route("/produto/<int:id>/vender", methods=["POST"])
+def vender_produto(id):
+    token = request.headers.get("Authorization")
+    dados = request.get_json()
+    return jsonify(produto_controller.vender(token, id, dados)), 201
 
 
 
