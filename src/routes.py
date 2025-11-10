@@ -1,17 +1,18 @@
 import os
 from flask import Flask, request, jsonify, Blueprint
 from Application.Controllers.cadastro_controller import CadastroCliente
+from Application.Controllers.login_controller import Login_Controller
 from config.db import Base, engine
 from Infrastructure.Model.cadastro_model import ClienteModel
 from Application.Controllers.produto_controller import ProdutoController
-
-Base.metadata.create_all(engine)
+from Application.Controllers.login_controller import Login_Controller
 
  
 
 app = Flask(__name__)
 cadastro_bp = Blueprint('cadastro_bp', __name__)
 Produto_bp = Blueprint('Produto_bp', __name__)
+Login_bp = Blueprint("Login_bp", __name__)
 controller = CadastroCliente()
 
 
@@ -73,43 +74,59 @@ def deletar_cliente(cnpj):
 
 produto_controller = ProdutoController()
 
-@app.route("/produto/adicionar", methods=["POST"])
+
+@Produto_bp.route("/adicionar", methods=["POST"])
 def adicionar_produto():
-    token = request.headers.get("Authorization")
     dados = request.get_json()
-    return jsonify(produto_controller.criar(token, dados)), 201
+    cnpj = dados.get("cnpj")
+    return jsonify(produto_controller.criar(cnpj ,dados)), 201
 
-@app.route("/produto/listar", methods=["GET"])
+@Produto_bp.route("/listar", methods=["GET"])
 def listar_produtos():
-    token = request.headers.get("Authorization")
-    return jsonify(produto_controller.listar(token)), 200
+    dados = request.get_json()
+    cnpj = dados.get("cnpj")
+    return jsonify(produto_controller.listar(cnpj)) 
 
-@app.route("/produto/<int:id>/detalhar", methods=["GET"])
+@Produto_bp.route("/detalhar/<int:id>", methods=["GET"])
 def detalhar_produto(id):
-    token = request.headers.get("Authorization")
-    return jsonify(produto_controller.detalhar(token, id)), 200
+    dados = request.get_json()
+    cnpj = dados.get("cnpj")
+    return jsonify(produto_controller.detalhar(cnpj, id)), 200
 
-@app.route("/produto/<int:id>/atualizar", methods=["PUT"])
+@Produto_bp.route("/atualizar/<int:id>", methods=["PUT"])
 def atualizar_produto(id):
-    token = request.headers.get("Authorization")
     dados = request.get_json()
-    return jsonify(produto_controller.atualizar(token, id, dados)), 200
+    cnpj = dados.get("cnpj")
+    return jsonify(produto_controller.atualizar(cnpj, id, dados)), 200
 
-@app.route("/produto/<int:id>/inativar", methods=["PUT"])
+@Produto_bp.route("/inativar/<int:id>", methods=["PUT"])
 def inativar_produto(id):
-    token = request.headers.get("Authorization")
-    return jsonify(produto_controller.inativar(token, id)), 200
-
-@app.route("/produto/<int:id>/vender", methods=["POST"])
-def vender_produto(id):
-    token = request.headers.get("Authorization")
     dados = request.get_json()
-    return jsonify(produto_controller.vender(token, id, dados)), 201
+    cnpj = dados.get("cnpj")
+    return jsonify(produto_controller.inativar(cnpj, id)), 200
+
+@Produto_bp.route("/vender/<int:id>", methods=["POST"])
+def vender_produto(id):
+    dados = request.get_json()
+    cnpj = dados.get("cnpj")
+    return jsonify(produto_controller.vender(cnpj, id, dados)), 201
+
+
+#Login
+
+login_controller = Login_Controller()
+
+@Login_bp.route("/login", methods=["POST"])
+def login():
+    dados = request.get_json()
+    resultado, status = login_controller.login(dados)
+    return jsonify(resultado), status
 
 
 
 app.register_blueprint(cadastro_bp, url_prefix="/cadastro")
 app.register_blueprint(Produto_bp, url_prefix="/produto")
+app.register_blueprint(Login_bp, url_prefix ="/login")
 
 
 
