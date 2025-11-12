@@ -6,8 +6,8 @@ class Login_Controller:
         self.service = Login_service()
 
     def login(self, dados):
-        cnpj = dados.get("cnpj")
+        email = dados.get("email")
         senha = dados.get("senha")
-        if not cnpj or not senha:
+        if not email or not senha:
             return {"erro": "CNPJ e senha são obrigatórios"}, 400
-        return self.service.login(cnpj, senha)
+        return self.service.login(email, senha)
