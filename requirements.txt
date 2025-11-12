@@ -6,3 +6,4 @@ pyjwt
 twilio
 flask-restful
 requests
+gunicorn
