@@ -6,10 +6,12 @@ from config.db import Base, engine
 from Infrastructure.Model.cadastro_model import ClienteModel
 from Application.Controllers.produto_controller import ProdutoController
 from Application.Controllers.login_controller import Login_Controller
+from flask_cors import CORS
 
  
 
 app = Flask(__name__)
+CORS(app)
 cadastro_bp = Blueprint('cadastro_bp', __name__)
 Produto_bp = Blueprint('Produto_bp', __name__)
 Login_bp = Blueprint("Login_bp", __name__)
