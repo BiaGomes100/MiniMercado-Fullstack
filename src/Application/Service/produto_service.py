@@ -77,26 +77,20 @@ class ProdutoService:
         return produto.to_dict()
 
     # Realizar venda (regras dentro do mesmo módulo)
-    def vender_produto(self, cnpj, id_produto, quantidade_vendida):
-        seller = self.cliente_service.buscar_por_cnpj(cnpj)
-        if not seller:
-            return {"erro": "CNPJ inválido ou incorreto, tente novamente."},404
-
-        if seller["status"].lower() == "Inativo":
-            return {"erro": "Seller inativo. Ative sua conta antes de vender produtos."}, 204
+    def vender_produto(self, cnpj,id_produto, quantidade_vendida):
 
         produto = self.repository.buscar_por_id(id_produto)
-        if not produto or produto.id_seller != seller["id"]:
-            return {"erro": "Produto não encontrado ou não pertence ao seller"}, 404
-
         if produto.status == "Inativo":
-            return {"erro": "Produtos inativados não podem ser vendidos."}, 204
+            return {"erro": "Produtos inativados não podem ser vendidos."}, 401
 
         if produto.quantidade < quantidade_vendida:
-            return {"erro": "Quantidade em estoque insuficiente."},204
+            return {"erro": "Quantidade em estoque insuficiente."},401
 
         # Atualiza o estoque
         produto.quantidade -= quantidade_vendida
+        if produto.quantidade == 0:
+            self.inativar_produto(cnpj,id_produto)
+
         self.repository.atualizar_produto(id_produto, {"quantidade": produto.quantidade})
 
         valor_total = quantidade_vendida * produto.preco
