@@ -53,14 +53,6 @@ class ProdutoService:
 
     # Inativar produto
     def inativar_produto(self, cnpj, id_produto):
-        seller = self.cliente_service.buscar_por_cnpj(cnpj)
-        if not seller:
-            return {"erro": "Não existe produtos para o Cnpj enviado."},404
-
-        produto = self.repository.buscar_por_id(id_produto)
-        if not produto or produto.id_seller != seller["id"]:
-            return {"erro": "Produto não encontrado"},404
-
         inativo = self.repository.inativar_produto(id_produto)
         return {"mensagem": f"Produto '{inativo.nome}' inativado com sucesso."},201
 
@@ -84,6 +76,7 @@ class ProdutoService:
             return {"erro": "Produtos inativados não podem ser vendidos."}, 401
 
         if produto.quantidade < quantidade_vendida:
+            self.inativar_produto(cnpj,id_produto)
             return {"erro": "Quantidade em estoque insuficiente."},401
 
         # Atualiza o estoque
