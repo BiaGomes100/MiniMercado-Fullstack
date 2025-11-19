@@ -98,7 +98,7 @@ def detalhar_produto(id):
 def atualizar_produto():
     dados = request.get_json()
     cnpj = dados.get("cnpj")
-    id = dados.get("id")
+    id = dados.get("id_produto")
     return jsonify(produto_controller.atualizar(cnpj, id, dados)), 200
 
 @Produto_bp.route("/inativar/<int:id>", methods=["PUT"])
