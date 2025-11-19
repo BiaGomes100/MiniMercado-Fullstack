@@ -39,3 +39,7 @@ class CadastroRepository:
         if cliente:
             self.session.delete(cliente)
             self.session.commit()
+
+    def listar_clientes_por_email(self, email):
+        cliente = self.session.query( ClienteModel).filter_by(email=email).first()
+        return cliente.to_dict() if cliente else None

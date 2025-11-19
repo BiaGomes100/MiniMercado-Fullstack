@@ -9,7 +9,7 @@ class Login_service:
         self.twilio_service = TwilioService()
 
     def login(self, email, senha):
-        cliente = self.repository.buscar_por_cnpj(email)
+        cliente = self.repository.listar_clientes_por_email(email)
         if not cliente:
             return {"erro": "Cliente não encontrado"}, 404
 

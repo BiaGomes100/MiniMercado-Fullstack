@@ -39,8 +39,10 @@ def listar_clientes():
     return jsonify(clientes), 200
 
 
-@cadastro_bp.route("/ativar/<string:cnpj>", methods=["PUT"])
-def ativar_cliente(cnpj):
+@cadastro_bp.route("/ativar", methods=["PUT"])
+def ativar_cliente():
+    dados = request.get_json()
+    cnpj = dados.get("cnpj")
     cliente = controller.ativar(cnpj)
     if cliente:
         return jsonify(cliente), 200
@@ -83,10 +85,8 @@ def adicionar_produto():
     cnpj = dados.get("cnpj")
     return jsonify(produto_controller.criar(cnpj ,dados)), 201
 
-@Produto_bp.route("/listar", methods=["GET"])
-def listar_produtos():
-    dados = request.get_json()
-    cnpj = dados.get("cnpj")
+@Produto_bp.route("/listar/<string:cnpj>", methods=["GET"])
+def listar_produtos(cnpj):
     return jsonify(produto_controller.listar(cnpj)) 
 
 @Produto_bp.route("/detalhar/<int:id>", methods=["GET"])
