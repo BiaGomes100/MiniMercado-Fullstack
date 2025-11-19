@@ -5,7 +5,6 @@ from Application.Controllers.login_controller import Login_Controller
 from config.db import Base, engine
 from Infrastructure.Model.cadastro_model import ClienteModel
 from Application.Controllers.produto_controller import ProdutoController
-from Application.Controllers.login_controller import Login_Controller
 from flask_cors import CORS
 
  

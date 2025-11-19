@@ -13,8 +13,8 @@ class ProdutoService:
     def adicionar_produto(self, cnpj, dados):
         ##seller = self.jwt_service.validar_token(token)
         seller = self.cliente_service.buscar_por_cnpj(cnpj)
-        if not seller:
-            return {"erro": "CNPJ inválido ou incorreto, tente novamente."}
+        # if not seller:
+        #     return {"erro": "CNPJ inválido ou incorreto, tente novamente."}
 
         if seller["status"].lower() == "Inativo":
             return {"erro": "Seller inativo. Ative sua conta antes de cadastrar produtos."}
