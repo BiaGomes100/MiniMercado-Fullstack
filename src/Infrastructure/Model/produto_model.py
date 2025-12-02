@@ -30,3 +30,5 @@ class ProdutoModel(Base):
             "imagem": self.imagem,
             "status": self.status
         }
+    
+    

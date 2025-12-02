@@ -93,4 +93,10 @@ class ProdutoService:
             "produto": produto.nome,
             "quantidade_vendida": quantidade_vendida,
             "valor_total": valor_total
-        }
+            }
+
+        
+
+        
+
+        

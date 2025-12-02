@@ -5,9 +5,9 @@ from Application.Controllers.login_controller import Login_Controller
 from config.db import Base, engine
 from Infrastructure.Model.cadastro_model import ClienteModel
 from Application.Controllers.produto_controller import ProdutoController
+from Application.Controllers.vendas_controller import VendasController
 from flask_cors import CORS
 
- 
 
 app = Flask(__name__)
 CORS(app)
@@ -15,6 +15,8 @@ cadastro_bp = Blueprint('cadastro_bp', __name__)
 Produto_bp = Blueprint('Produto_bp', __name__)
 Login_bp = Blueprint("Login_bp", __name__)
 controller = CadastroCliente()
+Vendas_bp = Blueprint("Vendas_bp", __name__)
+vendas_controller = VendasController().vendas_controller
 
 
 @cadastro_bp.route("/criar", methods=["POST"])
@@ -125,12 +127,36 @@ def login():
     return jsonify(resultado), status
 
 
+#vendas 
+
+@Vendas_bp.route("/registrar/<int:id_produto>", methods=["POST"])
+def registrar_venda(id_produto):
+    dados = request.get_json()
+    cnpj = dados.get("cnpj")
+    resultado, status = vendas_controller.registrar(cnpj, id_produto, dados)
+    return jsonify(resultado), status
+
+@Vendas_bp.route("/listar/produto/<int:id_produto>", methods=["GET"])
+def listar_vendas_produto(id_produto):
+    vendas = vendas_controller.listar_por_produto(id_produto)
+    return jsonify(vendas), 200
+
+@Vendas_bp.route("/listar/seller/<string:cnpj>", methods=["GET"])
+def listar_vendas_seller(cnpj):
+    vendas = vendas_controller.listar_por_seller(cnpj)
+    return jsonify(vendas), 200
+
+@Vendas_bp.route("/cancelar/<int:venda_id>", methods=["DELETE"])
+def cancelar_venda(venda_id):
+    resultado, status = vendas_controller.cancelar(venda_id)
+    return jsonify(resultado), status
+
+
 
 app.register_blueprint(cadastro_bp, url_prefix="/cadastro")
 app.register_blueprint(Produto_bp, url_prefix="/produto")
 app.register_blueprint(Login_bp, url_prefix ="/login")
-
-
+app.register_blueprint(Vendas_bp, url_prefix="/vendas")
 
 if __name__ == "__main__":
     app.run(debug=True)
